@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="Ambientika Local — Home Assistant integration with local control, no cloud required" />
+</p>
+
 # Ambientika Local — Native Home Assistant Integration
 
 A **native Home Assistant custom component** for Südwind Ambientika smart ventilation devices. Communicates directly with the fans over TCP — **no cloud, no MQTT, no Docker add-on, no middleware**. Just drop it into `custom_components/` and go.
@@ -125,3 +129,7 @@ MIT — see [LICENSE](LICENSE).
 
 - [@sragas](https://github.com/sragas) — original protocol reverse engineering
 - [@alexlenk](https://github.com/alexlenk) — polished HA add-on fork
+
+## Disclaimer
+
+This is an unofficial, community-developed integration. It is **not affiliated with, endorsed by, or sponsored by Südwind s.r.l.** "Südwind" and "Ambientika" are trademarks of their respective owners and are used here only to describe compatibility.
