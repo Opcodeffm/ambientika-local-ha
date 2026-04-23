@@ -1,0 +1,16 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ambientika Local Setup",
+        "description": "Configure the local TCP server for Ambientika devices. Make sure to redirect the DNS for app.ambientika.eu to your Home Assistant IP.",
+        "data": {
+          "port": "TCP Server Port"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Ambientika Local is already configured."
+    }
+  }
+}
