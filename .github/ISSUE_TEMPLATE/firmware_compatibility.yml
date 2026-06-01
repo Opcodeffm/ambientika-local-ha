@@ -1,0 +1,52 @@
+name: Firmware Compatibility Report
+description: Report whether the integration works with your firmware (positive or negative)
+labels: ["firmware-compat"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This integration was originally built against one specific firmware. Reports from other firmware versions — whether it just works or whether you had to tweak things — help build a compatibility matrix. Thanks!
+
+  - type: input
+    id: device-model
+    attributes:
+      label: Device model
+      placeholder: Ambientika Smart
+    validations:
+      required: true
+
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      description: Look for the line `Device XXX identified: radio=X.X.X micro=X.X.X` in the HA log.
+      placeholder: "micro=0.1.22 radio=0.0.28"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: Status
+      options:
+        - Works out of the box
+        - Works with minor issues
+        - Does not work
+    validations:
+      required: true
+
+  - type: textarea
+    id: hex
+    attributes:
+      label: Sample status message hex dump
+      description: Paste a line like `Parsing status message: 0100... (XX bytes)` from the debug log. Helps map firmware differences.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+    validations:
+      required: false

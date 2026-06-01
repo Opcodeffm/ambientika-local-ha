@@ -4,6 +4,10 @@
 
 # Ambientika Local — Native Home Assistant Integration
 
+![Status: Beta](https://img.shields.io/badge/status-beta-orange) ![Version](https://img.shields.io/badge/version-0.2.0--beta-blue) ![HA: 2024.1+](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue)
+
+> ⚠️ **Beta software.** Tested with one device (Ambientika Smart, firmware micro 0.0.11 / radio 0.0.21). Other firmware versions may behave differently. If you run into issues, please [open one](https://github.com/Opcodeffm/ambientika-local-ha/issues) — include your firmware version and a status-message hex dump from the debug log.
+
 A **native Home Assistant custom component** for Südwind Ambientika smart ventilation devices. Communicates directly with the fans over TCP — **no cloud, no MQTT, no Docker add-on, no middleware**. Just drop it into `custom_components/` and go.
 
 ## Why another Ambientika integration?

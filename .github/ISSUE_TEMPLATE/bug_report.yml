@@ -1,0 +1,75 @@
+name: Bug Report
+description: Something is not working
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please provide as much information as you can — especially firmware version and a debug log hex dump if the issue involves the device protocol.
+
+  - type: input
+    id: device-model
+    attributes:
+      label: Device model
+      description: Which Ambientika model? (e.g. Smart, Smart+, Office, etc.)
+      placeholder: Ambientika Smart
+    validations:
+      required: true
+
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      description: Visible in HA → Device → Firmware, or in the integration log line `Device XXX identified: radio=X.X.X micro=X.X.X`
+      placeholder: "micro=0.0.11 radio=0.0.21"
+    validations:
+      required: true
+
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2024.3.1"
+    validations:
+      required: true
+
+  - type: input
+    id: integration-version
+    attributes:
+      label: Integration version
+      placeholder: "0.2.0-beta"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug, what you expected vs. what actually happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug logs
+      description: |
+        Enable debug logging in `configuration.yaml`:
+        ```yaml
+        logger:
+          default: warning
+          logs:
+            custom_components.ambientika_local: debug
+        ```
+        Then restart HA, reproduce the issue, and paste the relevant log lines here. Especially include any lines starting with `Parsing status message:` or `Unknown message`.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Network setup, DNS redirect method (UniFi/Fritz!Box/Pi-hole/AdGuard), special configuration, etc.
+    validations:
+      required: false
