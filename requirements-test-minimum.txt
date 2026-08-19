@@ -4,7 +4,7 @@ bleak-retry-connector==3.5.0
 bluetooth-adapters==0.19.2
 bluetooth-data-tools==1.19.0
 habluetooth==3.1.1
-hypothesis==6.165.2
+hypothesis==6.165.9
 josepy==1.14.0
 pytest-homeassistant-custom-component==0.13.136
 ruff==0.16.1
