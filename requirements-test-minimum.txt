@@ -2,7 +2,7 @@
 bleak==0.22.1
 bleak-retry-connector==3.5.0
 bluetooth-adapters==0.19.2
-bluetooth-data-tools==1.19.0
+bluetooth-data-tools==1.29.21
 habluetooth==3.1.1
 hypothesis==6.165.2
 josepy==1.14.0
