@@ -28,9 +28,7 @@ async def async_setup_entry(
         for serial in coordinator.data:
             if serial not in known_devices:
                 known_devices.add(serial)
-                new_entities.append(
-                    AmbientikaFilterResetButton(coordinator, serial)
-                )
+                new_entities.append(AmbientikaFilterResetButton(coordinator, serial))
         if new_entities:
             async_add_entities(new_entities)
 
@@ -61,7 +59,9 @@ class AmbientikaFilterResetButton(
 
     @property
     def available(self) -> bool:
-        return self.coordinator.is_connected(self._serial)
+        return self.coordinator.is_connected(
+            self._serial
+        ) and self.coordinator.can_send_commands(self._serial)
 
     async def async_press(self) -> None:
         """Handle button press."""

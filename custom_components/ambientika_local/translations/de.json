@@ -1,0 +1,72 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ambientika Local einrichten",
+        "description": "Richte den lokalen TCP-Listener ein. Trage eigene Geräte-IDs manuell ein oder öffne ausdrücklich ein fünfminütiges Anlernfenster. Beim Anlernen landen Kandidaten zunächst in Quarantäne; es werden weder Entitäten erstellt noch Befehle freigeschaltet.",
+        "data": {
+          "port": "TCP-Server-Port",
+          "bind_host": "IP-Adresse des Listeners",
+          "enable_legacy_port": "Zusätzlich Legacy-Port 4521 öffnen",
+          "status_frame_length": "Länge des Statusrahmens",
+          "allowed_devices": "Freigegebene Geräte-IDs (kommagetrennt)",
+          "device_ip_bindings": "Optionale Geräte-IP-Bindungen (GERÄT=IP, kommagetrennt)",
+          "require_firmware": "Firmware-Identifikation vor Statusdaten verlangen",
+          "open_enrollment": "Fünfminütiges Anlernfenster öffnen"
+        }
+      }
+    },
+    "error": {
+      "invalid_bind_host": "Gib eine gültige Listener-IP-Adresse ein.",
+      "invalid_allowed_devices": "Jede Geräte-ID muss genau 12 Hexadezimalzeichen enthalten.",
+      "invalid_ip_bindings": "Verwende GERÄT=IP mit gültigen Geräte-IDs und IP-Adressen.",
+      "enrollment_required": "Gib mindestens ein Gerät frei oder öffne ausdrücklich das Anlernfenster.",
+      "invalid_approved_devices": "Einer der ausgewählten Kandidaten wartet nicht mehr auf Freigabe.",
+      "invalid_command_devices": "Befehle können nur für freigegebene Geräte aktiviert werden.",
+      "firmware_not_observed": "Vor der Befehlsfreigabe muss ein Firmware-Identifikationsrahmen dieses Geräts beobachtet werden."
+    },
+    "abort": {
+      "already_configured": "Ambientika Local ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ambientika Local – Sicherheit",
+        "description": "Gib nur erwartete Geräte aus der Quarantäne frei. Die Steuerung ist eine getrennte Freigabe, die an das lokal beobachtete Firmware-Profil gebunden wird. Änderungen laden die Integration neu.",
+        "data": {
+          "port": "TCP-Server-Port",
+          "bind_host": "IP-Adresse des Listeners",
+          "enable_legacy_port": "Zusätzlich Legacy-Port 4521 öffnen",
+          "status_frame_length": "Länge des Statusrahmens",
+          "allowed_devices": "Freigegebene Geräte-IDs (kommagetrennt)",
+          "device_ip_bindings": "Optionale Geräte-IP-Bindungen (GERÄT=IP, kommagetrennt)",
+          "require_firmware": "Firmware-Identifikation vor Statusdaten verlangen",
+          "open_enrollment": "Neues fünfminütiges Anlernfenster öffnen",
+          "approve_devices": "Geräte aus der Quarantäne freigeben",
+          "bind_approved_ips": "Neue Freigaben an die beobachtete IP binden",
+          "command_enabled_devices": "Steuerbefehle für diese firmwaregebundenen Geräte freigeben"
+        }
+      }
+    },
+    "error": {
+      "invalid_bind_host": "Gib eine gültige Listener-IP-Adresse ein.",
+      "invalid_allowed_devices": "Jede Geräte-ID muss genau 12 Hexadezimalzeichen enthalten.",
+      "invalid_ip_bindings": "Verwende GERÄT=IP mit gültigen Geräte-IDs und IP-Adressen.",
+      "enrollment_required": "Gib mindestens ein Gerät frei oder öffne ausdrücklich das Anlernfenster.",
+      "invalid_approved_devices": "Einer der ausgewählten Kandidaten wartet nicht mehr auf Freigabe.",
+      "invalid_command_devices": "Befehle können nur für freigegebene Geräte aktiviert werden.",
+      "firmware_not_observed": "Vor der Befehlsfreigabe muss ein Firmware-Identifikationsrahmen dieses Geräts beobachtet werden."
+    }
+  },
+  "issues": {
+    "no_approved_devices": {
+      "title": "Ambientika-Listener ist geschlossen",
+      "description": "Es ist kein Gerät freigegeben und kein Anlernfenster aktiv. Deshalb hat die Integration alle TCP-Listener geschlossen. Öffne die Integrationsoptionen, trage eine eigene Geräte-ID ein oder starte ein fünfminütiges Anlernfenster und bestätige anschließend ausdrücklich den erwarteten Kandidaten."
+    },
+    "wildcard_listener": {
+      "title": "Ambientika lauscht auf allen Netzwerkschnittstellen",
+      "description": "Der Listener verwendet 0.0.0.0 oder ::. Wähle möglichst die Home-Assistant-IP im Lüfternetz. Begrenze andernfalls TCP 11000 per Firewall auf die eigenen Lüfter."
+    }
+  }
+}

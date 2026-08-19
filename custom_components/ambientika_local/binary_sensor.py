@@ -31,11 +31,13 @@ async def async_setup_entry(
         for serial in coordinator.data:
             if serial not in known_devices:
                 known_devices.add(serial)
-                new_entities.extend([
-                    AmbientikaFilterSensor(coordinator, serial),
-                    AmbientikaHumidityAlarmSensor(coordinator, serial),
-                    AmbientikaNightAlarmSensor(coordinator, serial),
-                ])
+                new_entities.extend(
+                    [
+                        AmbientikaFilterSensor(coordinator, serial),
+                        AmbientikaHumidityAlarmSensor(coordinator, serial),
+                        AmbientikaNightAlarmSensor(coordinator, serial),
+                    ]
+                )
         if new_entities:
             async_add_entities(new_entities)
 
@@ -97,9 +99,7 @@ class AmbientikaFilterSensor(AmbientikaBaseBinarySensor):
         if status is None:
             return {}
         return {
-            "filter_condition": FILTER_STATUS_NAMES.get(
-                status.filter_status, "Unknown"
-            )
+            "filter_condition": FILTER_STATUS_NAMES.get(status.filter_status, "Unknown")
         }
 
 

@@ -1,13 +1,54 @@
 """Constants for the Ambientika Local integration."""
 
-from enum import IntEnum
 import logging
+from enum import IntEnum
 
 DOMAIN = "ambientika_local"
 LOGGER = logging.getLogger(__package__)
 
 DEFAULT_PORT = 11000
+DEFAULT_BIND_HOST = "0.0.0.0"
+DEFAULT_ENABLE_LEGACY_PORT = False
+DEFAULT_STATUS_FRAME_LENGTH = "auto"
+DEFAULT_ENROLLMENT_DURATION = 300
+DEFAULT_ENROLLMENT_EXPIRES_AT = 0.0
+DEFAULT_REQUIRE_FIRMWARE = True
 CONF_PORT = "port"
+CONF_BIND_HOST = "bind_host"
+CONF_ENABLE_LEGACY_PORT = "enable_legacy_port"
+CONF_ALLOWED_DEVICES = "allowed_devices"
+CONF_DEVICE_IP_BINDINGS = "device_ip_bindings"
+CONF_STATUS_FRAME_LENGTH = "status_frame_length"
+CONF_ENROLLMENT_EXPIRES_AT = "enrollment_expires_at"
+CONF_OPEN_ENROLLMENT = "open_enrollment"
+CONF_APPROVE_DEVICES = "approve_devices"
+CONF_BIND_APPROVED_IPS = "bind_approved_ips"
+CONF_COMMAND_ENABLED_DEVICES = "command_enabled_devices"
+CONF_APPROVED_FIRMWARE = "approved_firmware"
+CONF_REQUIRE_FIRMWARE = "require_firmware"
+
+LEGACY_PORT = 4521
+STATUS_FRAME_LENGTHS = (19, 21)
+STATUS_FRAME_LENGTH_OPTIONS = ("auto", "19", "21")
+
+# Defensive server defaults. These are deliberately conservative for a device
+# that normally sends one small status frame roughly every 30 seconds.
+DEFAULT_FIRST_FRAME_TIMEOUT = 15.0
+DEFAULT_IDLE_TIMEOUT = 120.0
+DEFAULT_FRAME_ASSEMBLY_TIMEOUT = 0.5
+DEFAULT_WRITE_TIMEOUT = 5.0
+DEFAULT_MAX_CONNECTIONS = 32
+DEFAULT_MAX_CONNECTIONS_PER_IP = 2
+DEFAULT_MAX_UNIDENTIFIED_CONNECTIONS = 4
+DEFAULT_MAX_CONNECTION_ATTEMPTS_PER_MINUTE = 30
+DEFAULT_MAX_ENROLLMENT_CANDIDATES = 32
+DEFAULT_MAX_BUFFER_SIZE = 4096
+DEFAULT_MAX_INVALID_FRAMES = 5
+DEFAULT_MAX_DISCARDED_BYTES = 64
+DEFAULT_MAX_FRAMES_PER_SECOND = 20
+DEFAULT_MAX_COMMANDS_PER_MINUTE = 12
+DEFAULT_COMMAND_DEDUP_WINDOW = 1.0
+DEFAULT_REJECTION_LOG_INTERVAL = 30.0
 
 # Protocol constants
 MSG_TYPE_STATUS = 0x01
@@ -19,6 +60,7 @@ CMD_FILTER_RESET = 0x03
 CMD_WEATHER_UPDATE = 0x04
 
 STATUS_MSG_LENGTH = 21
+LEGACY_STATUS_MSG_LENGTH = 19
 FIRMWARE_MSG_LENGTH = 18
 COMMAND_MSG_LENGTH = 13
 FILTER_RESET_MSG_LENGTH = 9
@@ -117,9 +159,7 @@ FAN_SPEED_NAMES: dict[FanSpeed, str] = {
     FanSpeed.HIGH: "high",
 }
 
-FAN_SPEED_FROM_NAME: dict[str, FanSpeed] = {
-    v: k for k, v in FAN_SPEED_NAMES.items()
-}
+FAN_SPEED_FROM_NAME: dict[str, FanSpeed] = {v: k for k, v in FAN_SPEED_NAMES.items()}
 
 HUMIDITY_LEVEL_NAMES: dict[HumidityLevel, str] = {
     HumidityLevel.DRY: "Dry",

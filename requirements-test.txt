@@ -1,0 +1,10 @@
+# Match Home Assistant 2026.2.3's tested transitive set. Without these pins,
+# later Bluetooth helper releases conflict with HA's cryptography constraint.
+bleak==2.1.1
+bleak-retry-connector==4.4.3
+bluetooth-adapters==2.1.0
+bluetooth-data-tools==1.28.4
+habluetooth==5.8.0
+hypothesis==6.165.2
+pytest-homeassistant-custom-component==0.13.316
+ruff==0.16.1

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from homeassistant.components.climate import (
     ClimateEntity,
@@ -18,15 +18,11 @@ from .const import (
     DOMAIN,
     FAN_SPEED_FROM_NAME,
     FAN_SPEED_NAMES,
-    HUMIDITY_LEVEL_FROM_NAME,
     HUMIDITY_LEVEL_NAMES,
     LOGGER,
     MANUFACTURER,
     OPERATING_MODE_TO_PRESET,
     PRESET_TO_OPERATING_MODE,
-    FanSpeed,
-    HumidityLevel,
-    LightSensitivity,
     OperatingMode,
 )
 from .coordinator import AmbientikaCoordinator
@@ -49,9 +45,7 @@ async def async_setup_entry(
         for serial in coordinator.data:
             if serial not in known_devices:
                 known_devices.add(serial)
-                new_entities.append(
-                    AmbientikaClimateEntity(coordinator, serial, entry)
-                )
+                new_entities.append(AmbientikaClimateEntity(coordinator, serial, entry))
         if new_entities:
             async_add_entities(new_entities)
 
@@ -60,21 +54,21 @@ async def async_setup_entry(
     _check_new_devices()
 
 
-class AmbientikaClimateEntity(
-    CoordinatorEntity[AmbientikaCoordinator], ClimateEntity
-):
+class AmbientikaClimateEntity(CoordinatorEntity[AmbientikaCoordinator], ClimateEntity):
     """Ambientika climate entity."""
 
     _attr_has_entity_name = True
     _attr_name = None  # Use device name
     _attr_temperature_unit = "°C"
     _attr_supported_features = (
-        ClimateEntityFeature.FAN_MODE
-        | ClimateEntityFeature.PRESET_MODE
+        ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.PRESET_MODE
     )
-    _attr_hvac_modes = [HVACMode.OFF, HVACMode.FAN_ONLY]
-    _attr_fan_modes = list(FAN_SPEED_NAMES.values())
-    _attr_preset_modes = list(PRESET_TO_OPERATING_MODE.keys())
+    _attr_hvac_modes: ClassVar[list[HVACMode]] = [
+        HVACMode.OFF,
+        HVACMode.FAN_ONLY,
+    ]
+    _attr_fan_modes: ClassVar[list[str]] = list(FAN_SPEED_NAMES.values())
+    _attr_preset_modes: ClassVar[list[str]] = list(PRESET_TO_OPERATING_MODE)
     _enable_turn_on_off_backwards_compat = False
 
     def __init__(
@@ -113,6 +107,13 @@ class AmbientikaClimateEntity(
     def available(self) -> bool:
         """Return if entity is available."""
         return self.coordinator.is_connected(self._serial) and self._status is not None
+
+    @property
+    def supported_features(self) -> ClimateEntityFeature:
+        """Hide optional controls until writes are explicitly approved."""
+        if not self.coordinator.can_send_commands(self._serial):
+            return ClimateEntityFeature(0)
+        return self._attr_supported_features
 
     @property
     def hvac_mode(self) -> HVACMode:
@@ -157,8 +158,13 @@ class AmbientikaClimateEntity(
         if status is None:
             return {}
         return {
-            "humidity_level": HUMIDITY_LEVEL_NAMES.get(status.humidity_level, "Unknown"),
-            "light_sensitivity": status.light_sensitivity.name.replace("_", " ").title(),
+            "control_enabled": self.coordinator.can_send_commands(self._serial),
+            "humidity_level": HUMIDITY_LEVEL_NAMES.get(
+                status.humidity_level, "Unknown"
+            ),
+            "light_sensitivity": status.light_sensitivity.name.replace(
+                "_", " "
+            ).title(),
             "device_role": status.device_role.name.replace("_", " ").title(),
             "signal_strength": status.signal_strength,
         }

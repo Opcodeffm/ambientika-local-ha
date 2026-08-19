@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import struct
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from enum import IntEnum
+from typing import TypeVar
 
 from .const import (
     CMD_FILTER_RESET,
     CMD_OPERATING_MODE,
     CMD_WEATHER_UPDATE,
     FIRMWARE_MSG_LENGTH,
+    LEGACY_STATUS_MSG_LENGTH,
     LOGGER,
     MSG_TYPE_COMMAND,
     MSG_TYPE_FIRMWARE,
@@ -24,15 +27,69 @@ from .const import (
     OperatingMode,
 )
 
+EnumT = TypeVar("EnumT", bound=IntEnum)
+
+
+class ProtocolError(ValueError):
+    """Raised when an untrusted protocol frame is malformed."""
+
+
+def normalize_serial(serial: str) -> str:
+    """Return a canonical 12-character lower-case device identifier."""
+    canonical = serial.strip().lower().replace(":", "").replace("-", "")
+    if len(canonical) != 12:
+        raise ValueError("device identifier must contain exactly 12 hex characters")
+    try:
+        bytes.fromhex(canonical)
+    except ValueError as err:
+        raise ValueError("device identifier contains non-hex characters") from err
+    return canonical
+
+
+def redact_serial(serial: str | None) -> str:
+    """Return a stable log-safe representation of a device identifier."""
+    if not serial:
+        return "unknown"
+    try:
+        canonical = normalize_serial(serial)
+    except ValueError:
+        return "invalid-device-id"
+    return f"********{canonical[-4:]}"
+
+
+def redact_frame(data: bytes) -> str:
+    """Return frame hex with the embedded device identifier removed."""
+    if len(data) < 8:
+        return f"<{len(data)} bytes>"
+    return f"{data[:2].hex()}<device-id-redacted>{data[8:].hex()}"
+
 
 def _mac_from_buffer(data: bytes, offset: int = 2) -> str:
     """Extract MAC address as hex string from buffer at offset (6 bytes)."""
-    return data[offset : offset + 6].hex()
+    raw = data[offset : offset + 6]
+    if len(raw) != 6:
+        raise ProtocolError("frame does not contain a complete device identifier")
+    return raw.hex()
 
 
 def _mac_to_bytes(mac: str) -> bytes:
     """Convert MAC hex string to 6 bytes."""
-    return bytes.fromhex(mac)
+    return bytes.fromhex(normalize_serial(mac))
+
+
+def _enum_value(enum_type: type[EnumT], value: int, field_name: str) -> EnumT:
+    """Parse a protocol enum while producing a non-sensitive error."""
+    try:
+        return enum_type(value)
+    except ValueError as err:
+        raise ProtocolError(f"invalid {field_name} value: {value}") from err
+
+
+def _bool_value(value: int, field_name: str) -> bool:
+    """Parse a protocol boolean and reject non-boolean byte values."""
+    if value not in (0, 1):
+        raise ProtocolError(f"invalid {field_name} value: {value}")
+    return value == 1
 
 
 @dataclass
@@ -65,6 +122,11 @@ class FirmwareInfo:
     radio_at_fw: str
 
 
+def firmware_fingerprint(info: FirmwareInfo) -> str:
+    """Return the stable firmware tuple used for explicit write approval."""
+    return f"{info.radio_fw}|{info.micro_fw}|{info.radio_at_fw}"
+
+
 @dataclass
 class DeviceSetup:
     """Parsed device setup message."""
@@ -83,18 +145,23 @@ def parse_message(data: bytes) -> DeviceStatus | FirmwareInfo | DeviceSetup | No
     if len(data) < 8:
         LOGGER.debug("Message too short: %d bytes", len(data))
         return None
+    if data[1] != 0x00:
+        raise ProtocolError(f"invalid frame marker value: {data[1]}")
 
     msg_type = data[0]
 
-    if msg_type == MSG_TYPE_STATUS and len(data) >= 19:
+    if msg_type == MSG_TYPE_STATUS and len(data) in (
+        LEGACY_STATUS_MSG_LENGTH,
+        STATUS_MSG_LENGTH,
+    ):
         return _parse_status(data)
-    if msg_type == MSG_TYPE_FIRMWARE and len(data) >= FIRMWARE_MSG_LENGTH:
+    if msg_type == MSG_TYPE_FIRMWARE and len(data) == FIRMWARE_MSG_LENGTH:
         return _parse_firmware(data)
-    if msg_type == MSG_TYPE_COMMAND and len(data) >= 15:
+    if msg_type == MSG_TYPE_COMMAND and len(data) == 15:
         # Device setup message from cloud (we act as cloud)
         return _parse_setup(data)
 
-    LOGGER.debug("Unknown message type 0x%02x, length %d", msg_type, len(data))
+    LOGGER.debug("Unsupported frame type 0x%02x, length %d", msg_type, len(data))
     return None
 
 
@@ -103,22 +170,29 @@ def _parse_status(data: bytes) -> DeviceStatus:
     mac = _mac_from_buffer(data, 2)
     msg_len = len(data)
 
-    LOGGER.debug("Parsing status message: %s (%d bytes)", data.hex(), msg_len)
+    if data[12] > 100:
+        raise ProtocolError(f"invalid humidity value: {data[12]}")
+
+    LOGGER.debug("Parsing status frame: %s (%d bytes)", redact_frame(data), msg_len)
 
     return DeviceStatus(
         serial_number=mac,
-        operating_mode=OperatingMode(data[8]),
-        fan_speed=FanSpeed(data[9]),
-        humidity_level=HumidityLevel(data[10]),
+        operating_mode=_enum_value(OperatingMode, data[8], "operating mode"),
+        fan_speed=_enum_value(FanSpeed, data[9], "fan speed"),
+        humidity_level=_enum_value(HumidityLevel, data[10], "humidity level"),
         temperature=struct.unpack_from("b", data, 11)[0],  # signed int8
         humidity=data[12],
-        air_quality=AirQuality(data[13]),
-        humidity_alarm=data[14] == 1,
-        filter_status=FilterStatus(data[15]),
-        night_alarm=data[16] == 1,
-        device_role=DeviceRole(data[17]),
-        last_operating_mode=OperatingMode(data[18]),
-        light_sensitivity=LightSensitivity(data[19]) if msg_len > 19 else LightSensitivity.NOT_AVAILABLE,
+        air_quality=_enum_value(AirQuality, data[13], "air quality"),
+        humidity_alarm=_bool_value(data[14], "humidity alarm"),
+        filter_status=_enum_value(FilterStatus, data[15], "filter status"),
+        night_alarm=_bool_value(data[16], "night alarm"),
+        device_role=_enum_value(DeviceRole, data[17], "device role"),
+        last_operating_mode=_enum_value(OperatingMode, data[18], "last operating mode"),
+        light_sensitivity=(
+            _enum_value(LightSensitivity, data[19], "light sensitivity")
+            if msg_len == STATUS_MSG_LENGTH
+            else LightSensitivity.NOT_AVAILABLE
+        ),
         signal_strength=data[20] if msg_len > 20 else 0,
     )
 
@@ -143,8 +217,8 @@ def _parse_setup(data: bytes) -> DeviceSetup | None:
 
     return DeviceSetup(
         serial_number=mac,
-        device_role=DeviceRole(data[10]),
-        zone=data[11],
+        device_role=_enum_value(DeviceRole, data[9], "device role"),
+        zone=data[10],
         house_id=struct.unpack_from("<I", data, 11)[0],
     )
 
@@ -186,6 +260,11 @@ def build_weather_update(
     air_quality: AirQuality,
 ) -> bytes:
     """Build a 13-byte weather update command."""
+    if not -327.68 <= temperature <= 327.67:
+        raise ValueError("temperature is outside the protocol range")
+    if not 0 <= humidity <= 100:
+        raise ValueError("humidity must be between 0 and 100")
+
     buf = bytearray(13)
     buf[0] = MSG_TYPE_COMMAND
     buf[1] = 0x00

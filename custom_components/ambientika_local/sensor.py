@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import AIR_QUALITY_NAMES, DOMAIN, MANUFACTURER
+from .const import AIR_QUALITY_NAMES, DOMAIN
 from .coordinator import AmbientikaCoordinator
 from .protocol import DeviceStatus
 
@@ -33,12 +33,14 @@ async def async_setup_entry(
         for serial in coordinator.data:
             if serial not in known_devices:
                 known_devices.add(serial)
-                new_entities.extend([
-                    AmbientikaTemperatureSensor(coordinator, serial),
-                    AmbientikaHumiditySensor(coordinator, serial),
-                    AmbientikaAirQualitySensor(coordinator, serial),
-                    AmbientikaSignalSensor(coordinator, serial),
-                ])
+                new_entities.extend(
+                    [
+                        AmbientikaTemperatureSensor(coordinator, serial),
+                        AmbientikaHumiditySensor(coordinator, serial),
+                        AmbientikaAirQualitySensor(coordinator, serial),
+                        AmbientikaSignalSensor(coordinator, serial),
+                    ]
+                )
         if new_entities:
             async_add_entities(new_entities)
 
@@ -46,9 +48,7 @@ async def async_setup_entry(
     _check_new_devices()
 
 
-class AmbientikaBaseSensor(
-    CoordinatorEntity[AmbientikaCoordinator], SensorEntity
-):
+class AmbientikaBaseSensor(CoordinatorEntity[AmbientikaCoordinator], SensorEntity):
     """Base class for Ambientika sensors."""
 
     _attr_has_entity_name = True

@@ -3,14 +3,70 @@
     "step": {
       "user": {
         "title": "Ambientika Local Setup",
-        "description": "Configure the local TCP server for Ambientika devices. Make sure to redirect the DNS for app.ambientika.eu to your Home Assistant IP.",
+        "description": "Configure the local TCP listener. Add owned device IDs manually or explicitly open a five-minute enrollment window. Enrollment records candidates in quarantine; it never creates entities or enables commands.",
         "data": {
-          "port": "TCP Server Port"
+          "port": "TCP server port",
+          "bind_host": "Listener IP address",
+          "enable_legacy_port": "Also listen on legacy port 4521",
+          "status_frame_length": "Status frame length",
+          "allowed_devices": "Approved device IDs (comma separated)",
+          "device_ip_bindings": "Optional device-to-IP bindings (DEVICE=IP, comma separated)",
+          "require_firmware": "Require firmware identification before status data",
+          "open_enrollment": "Open a five-minute enrollment window"
         }
       }
     },
+    "error": {
+      "invalid_bind_host": "Enter a valid listener IP address.",
+      "invalid_allowed_devices": "Every device ID must contain exactly 12 hexadecimal characters.",
+      "invalid_ip_bindings": "Use DEVICE=IP entries with valid device IDs and IP addresses.",
+      "enrollment_required": "Add at least one approved device or explicitly open enrollment.",
+      "invalid_approved_devices": "One of the selected candidates is no longer awaiting approval.",
+      "invalid_command_devices": "Commands can only be enabled for approved devices.",
+      "firmware_not_observed": "Observe a firmware identification frame before enabling commands for this device."
+    },
     "abort": {
       "already_configured": "Ambientika Local is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ambientika Local Security",
+        "description": "Approve only expected quarantined devices. Command control is a separate approval bound to the firmware profile observed locally. Changes reload the integration.",
+        "data": {
+          "port": "TCP server port",
+          "bind_host": "Listener IP address",
+          "enable_legacy_port": "Also listen on legacy port 4521",
+          "status_frame_length": "Status frame length",
+          "allowed_devices": "Approved device IDs (comma separated)",
+          "device_ip_bindings": "Optional device-to-IP bindings (DEVICE=IP, comma separated)",
+          "require_firmware": "Require firmware identification before status data",
+          "open_enrollment": "Open a new five-minute enrollment window",
+          "approve_devices": "Approve quarantined devices",
+          "bind_approved_ips": "Bind newly approved devices to their observed IP",
+          "command_enabled_devices": "Enable command writes for these firmware-approved devices"
+        }
+      }
+    },
+    "error": {
+      "invalid_bind_host": "Enter a valid listener IP address.",
+      "invalid_allowed_devices": "Every device ID must contain exactly 12 hexadecimal characters.",
+      "invalid_ip_bindings": "Use DEVICE=IP entries with valid device IDs and IP addresses.",
+      "enrollment_required": "Add at least one approved device or explicitly open enrollment.",
+      "invalid_approved_devices": "One of the selected candidates is no longer awaiting approval.",
+      "invalid_command_devices": "Commands can only be enabled for approved devices.",
+      "firmware_not_observed": "Observe a firmware identification frame before enabling commands for this device."
+    }
+  },
+  "issues": {
+    "no_approved_devices": {
+      "title": "Ambientika listener is closed",
+      "description": "No device is approved and no enrollment window is active, so the integration has closed all TCP listeners. Open the integration options, add an owned device ID or start a five-minute enrollment window, then explicitly approve the expected candidate."
+    },
+    "wildcard_listener": {
+      "title": "Ambientika listens on every network interface",
+      "description": "The listener uses 0.0.0.0 or ::. If possible, select the Home Assistant IP on the fan network. Otherwise restrict TCP 11000 with firewall rules so only owned fans can reach it."
     }
   }
 }

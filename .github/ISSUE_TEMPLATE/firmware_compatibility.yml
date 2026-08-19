@@ -19,7 +19,7 @@ body:
     id: firmware
     attributes:
       label: Firmware version
-      description: Look for the line `Device XXX identified: radio=X.X.X micro=X.X.X` in the HA log.
+      description: Look for the redacted device identification line in the HA log.
       placeholder: "micro=0.1.22 radio=0.0.28"
     validations:
       required: true
@@ -36,11 +36,11 @@ body:
       required: true
 
   - type: textarea
-    id: hex
+    id: frame
     attributes:
-      label: Sample status message hex dump
-      description: Paste a line like `Parsing status message: 0100... (XX bytes)` from the debug log. Helps map firmware differences.
-      render: shell
+      label: Status frame information
+      description: Provide the observed frame length (for example 19 or 21 bytes) and an integration-generated redacted parser line. Never post a raw frame, PCAP, full device identifier, token, account email, or exact device IP.
+      placeholder: "21 bytes; automatic detection works"
     validations:
       required: false
 

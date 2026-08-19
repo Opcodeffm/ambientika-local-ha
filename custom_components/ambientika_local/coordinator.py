@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
+
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN, LOGGER
-from .protocol import DeviceStatus, FirmwareInfo
+from .protocol import DeviceStatus, FirmwareInfo, redact_serial
 from .server import AmbientikaServer
 
 
@@ -23,14 +25,14 @@ class AmbientikaCoordinator(DataUpdateCoordinator[dict[str, DeviceStatus]]):
         )
         self.server = server
         self.data: dict[str, DeviceStatus] = {}
-        self._new_device_callbacks: list[callable] = []
+        self._new_device_callbacks: list[Callable[[str], Awaitable[None]]] = []
 
         # Register server callbacks
         server.on_status(self._handle_status)
         server.on_connect(self._handle_connect)
         server.on_disconnect(self._handle_disconnect)
 
-    def on_new_device(self, callback_fn: callable) -> None:
+    def on_new_device(self, callback_fn: Callable[[str], Awaitable[None]]) -> None:
         """Register callback for when a new device is discovered."""
         self._new_device_callbacks.append(callback_fn)
 
@@ -42,7 +44,9 @@ class AmbientikaCoordinator(DataUpdateCoordinator[dict[str, DeviceStatus]]):
         self.async_set_updated_data(self.data)
 
         if is_new:
-            LOGGER.info("New device discovered: %s", status.serial_number)
+            LOGGER.info(
+                "New device discovered: %s", redact_serial(status.serial_number)
+            )
             for cb in self._new_device_callbacks:
                 try:
                     self.hass.async_create_task(cb(status.serial_number))
@@ -52,12 +56,12 @@ class AmbientikaCoordinator(DataUpdateCoordinator[dict[str, DeviceStatus]]):
     @callback
     def _handle_connect(self, serial_number: str) -> None:
         """Handle device connection."""
-        LOGGER.info("Device connected: %s", serial_number)
+        LOGGER.info("Device connected: %s", redact_serial(serial_number))
 
     @callback
     def _handle_disconnect(self, serial_number: str) -> None:
         """Handle device disconnection."""
-        LOGGER.info("Device disconnected: %s", serial_number)
+        LOGGER.info("Device disconnected: %s", redact_serial(serial_number))
         # Keep last known state but notify listeners
         self.async_set_updated_data(self.data)
 
@@ -72,6 +76,10 @@ class AmbientikaCoordinator(DataUpdateCoordinator[dict[str, DeviceStatus]]):
     def is_connected(self, serial_number: str) -> bool:
         """Check if a device is currently connected."""
         return serial_number in self.server.connected_devices
+
+    def can_send_commands(self, serial_number: str) -> bool:
+        """Return whether owner-approved writes are enabled for a device."""
+        return self.server.can_send_commands(serial_number)
 
     async def send_command(self, serial_number: str, command: bytes) -> bool:
         """Send a command to a device."""

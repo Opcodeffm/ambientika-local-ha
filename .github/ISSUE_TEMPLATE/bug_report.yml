@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report a bug! Please provide as much information as you can — especially firmware version and a debug log hex dump if the issue involves the device protocol.
+        Thanks for taking the time to report a bug! Include the firmware version and frame length when relevant. Do not post raw packet captures, account credentials, tokens, email addresses, full MAC/device identifiers, or exact device IPs.
 
   - type: input
     id: device-model
@@ -20,7 +20,7 @@ body:
     id: firmware
     attributes:
       label: Firmware version
-      description: Visible in HA → Device → Firmware, or in the integration log line `Device XXX identified: radio=X.X.X micro=X.X.X`
+      description: Visible in HA → Device → Firmware, or in the redacted integration identification log line.
       placeholder: "micro=0.0.11 radio=0.0.21"
     validations:
       required: true
@@ -37,7 +37,7 @@ body:
     id: integration-version
     attributes:
       label: Integration version
-      placeholder: "0.2.0-beta"
+      placeholder: "0.3.0-beta"
     validations:
       required: true
 
@@ -61,7 +61,7 @@ body:
           logs:
             custom_components.ambientika_local: debug
         ```
-        Then restart HA, reproduce the issue, and paste the relevant log lines here. Especially include any lines starting with `Parsing status message:` or `Unknown message`.
+        Then restart HA, reproduce the issue, and paste only the relevant integration-generated redacted lines. Review them before posting. Do not include raw PCAP output or restore the redacted device identifier.
       render: shell
     validations:
       required: false
