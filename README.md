@@ -11,6 +11,38 @@ Cloud-free control for Südwind Ambientika ventilation units as a native Home As
 > [!WARNING]
 > This is beta software tested with one Ambientika Smart configured as a standalone master (micro `0.0.11`, radio `0.0.21`). Other models and firmware may use different frames. Read [Compatibility and limitations](#compatibility-and-limitations) before installation.
 
+## Which “Ambientika Local” is this?
+
+This repository is an independent, native Home Assistant integration. It is not
+the manufacturer’s [official Ambientika Local App](https://github.com/ambientika-eu/ambientika-local-app).
+
+| | This repository: `ambientika-local-ha` | Official `ambientika-local-app` |
+|---|---|---|
+| Primary interface | Native Home Assistant entities | Separate browser app (PWA) |
+| Local device path | Fan → Home Assistant over TCP | Fan → local bridge → MQTT → FastAPI/PWA |
+| Additional runtime services | None | MQTT broker, bridge and web backend |
+| Vendor cloud | Never used at runtime | Default Compose mode uses it; a separate cloudless mode is available |
+| Installation | HACS or manual custom component | Docker Compose |
+
+### Smaller and hardened by design
+
+This integration deliberately avoids adding a broker, REST API, WebSocket or
+separate web application to the trust boundary. Its TCP listener stays closed
+until a known device is configured or a five-minute enrollment window is opened.
+Unknown devices remain quarantined as candidates; telemetry admission and command
+writes require separate approval. Write access is tied to an observed firmware
+profile and is revoked automatically when that profile changes. Optional IP
+binding, bounded parsing and rate limits, plus redacted logs and diagnostics,
+further reduce the exposed surface.
+
+These controls harden the local endpoint; they do not add authentication or
+encryption to the vendor’s underlying TCP protocol. Keep it on a trusted,
+firewalled network.
+
+The GitHub repository [`Opcodeffm/ambientika-local-app`](https://github.com/Opcodeffm/ambientika-local-app)
+is only a fork of the official project used to contribute fixes upstream. It is
+not another distribution of this Home Assistant integration.
+
 ## Features
 
 - Native Home Assistant entities with local push updates
